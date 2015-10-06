@@ -72,8 +72,8 @@
         var expirationTimestamp = null;
 
 
-        var loginRoute = loginRoute || '/users/login';
-        var refresh    = refreshRoute || '/users/login';
+        var loginRoute = loginRoute || '/user/login';
+        var refresh    = refreshRoute || '/user/refresh';
 
 
         //
