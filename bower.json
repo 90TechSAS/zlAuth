@@ -1,27 +1,35 @@
 {
-	"name": "zlAuth",
-	"version": "1.0.0",
-	"authors": [
-		"FloGou <florent.gouget@gmail.com>"
-	],
-	"description": "",
-	"keywords": [
-		""
-	],
-	"license": "MIT",
-	"ignore": [
-		"**/.*",
-		"node_modules",
-		"bower_components",
-		"test",
-		"tests"
-	],
-	"dependencies": {
-		"angular":"~1.4.0",
-		"angular-sanitize":"~1.4.0",
-		"angular-route":"~1.4.0",
-		"angular-touch":"~1.4.0"
-	},
-	"devDependencies": {
-	}
+  "name": "zlAuth",
+  "version": "1.0.0",
+  "authors": [
+    "FloGou <florent.gouget@gmail.com>"
+  ],
+  "description": "",
+  "keywords": [
+    ""
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "main":[
+    "build/auth.js"
+  ],
+  "dependencies": {
+    "angular": "~1.4.0",
+    "angular-sanitize": "~1.4.0",
+    "angular-route": "~1.4.0",
+    "angular-touch": "~1.4.0",
+    "angular-storage-emitter": "git://github.com/90TechSAS/angular-storage-emitter.git#0.0.1",
+    "ngstorage": "0.3.0",
+    "angular-jwt": "0.0.9",
+    "moment": "~2.10.6"
+  },
+  "devDependencies": {
+    "jsrsasign": "~4.9.2"
+  }
 }
