@@ -73,7 +73,7 @@
 
 
         var loginRoute = loginRoute || '/user/login';
-        var refresh    = refreshRoute || '/user/refresh';
+        var refreshRoute    = refreshRoute || '/user/refresh/';
 
 
         //
