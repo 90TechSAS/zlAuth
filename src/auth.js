@@ -38,13 +38,18 @@
                 return this;
             };
 
+            this.setChangeTeamRoute = function(changeTeamRoute){
+                this.changeTeamRoute = changeTeamRoute;
+                return this;
+            };
+
             this.$get = ['$window', '$interval', '$timeout', '$http', '$location', '$localStorage', '$sessionStorage', 'jwtHelper', 'zlStorageEmitter', '$q',
                 function($window, $interval, $timeout, $http, $location, $localStorage, $sessionStorage, jwtHelper, zlStorageEmitter, $q){
                     if (!self.appId || !self.rootUrl){
                         throw 'You should set appId and baseurl before using zlAuth';
                     }
                     return new AuthService($window, $interval, $timeout, $http, $location, $localStorage, $sessionStorage, jwtHelper, zlStorageEmitter, $q,
-                        self.rootUrl, self.appId, self.loginRoute, self.refreshRoute
+                        self.rootUrl, self.appId, self.loginRoute, self.refreshRoute, this.changeTeamRoute
                     );
                 }];
             //  return this;
@@ -57,7 +62,7 @@
     /**
      *
      */
-    function AuthService($window, $interval, $timeout, $http, $location, $localStorage, $sessionStorage, jwtHelper, zlStorageEmitter, $q, rootUrl, appId, loginRoute, refreshRoute){
+    function AuthService($window, $interval, $timeout, $http, $location, $localStorage, $sessionStorage, jwtHelper, zlStorageEmitter, $q, rootUrl, appId, loginRoute, refreshRoute, changeTeamRoute){
 
         var self = this;
 
@@ -72,8 +77,9 @@
         var expirationTimestamp = null;
 
 
-        var loginRoute = loginRoute || '/user/login';
-        var refreshRoute    = refreshRoute || '/user/refresh/';
+        loginRoute      = loginRoute || '/login';
+        refreshRoute    = refreshRoute || '/refresh/';
+        changeTeamRoute = changeTeamRoute || '/companies/change';
 
 
         //
@@ -111,7 +117,6 @@
 
 
         function init(force){
-
             return authorize(force).then(
                 function(token){
                     //Success
@@ -285,7 +290,7 @@
         }
 
         function changeTeam(){
-            window.location.href = rootUrl + 'team/change?client=' + appId + '&token=' + $localStorage.accessToken;
+            window.location.href = rootUrl + changeTeamRoute + '?client=' + appId ;// + '&token=' + $localStorage.accessToken;
         }
 
         return self;
