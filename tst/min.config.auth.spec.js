@@ -4,8 +4,8 @@ describe('AuthService', function(){
 
     var authUrl      = 'https://MYAUTH.fr';
     var appId        = 'THISISMYAPPID';
-    var loginRoute   = '/user/login';
-    var refreshRoute = '/user/refresh/';
+    var loginRoute   = '/login';
+    var refreshRoute = '/refresh/';
 
 
     beforeEach(function(){
