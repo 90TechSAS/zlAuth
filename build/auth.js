@@ -151,7 +151,9 @@
                 url              : rootUrl + refreshRoute + (token),
                 skipAuthorization: true,
                 method           : 'GET'
-            }).then(function(data){return data.data.token});
+            }).then(function(data){
+                return data.data.token
+            });
         }
 
         /**
@@ -164,10 +166,14 @@
                 def.resolve(token);
             } else{
                 if (token){
-                    refreshToken(token).then(def.resolve, function(){
-                        def.reject({status: 403, config: {ignoreErrors: [403]}});
-                        disconnect()
-                    });
+                    refreshToken(token).then(
+                        function(token){
+                            def.resolve(token);
+                            setToken(token);
+                        }, function(){
+                            def.reject({status: 403, config: {ignoreErrors: [403]}});
+                            disconnect()
+                        });
                 } else{
                     disconnect();
                     def.reject({status: 403, config: {ignoreErrors: [403]}});
