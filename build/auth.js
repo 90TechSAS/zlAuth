@@ -43,38 +43,27 @@
                 return this;
             };
 
-            this.$get = ['$window', '$interval', '$timeout', '$http', '$location', '$localStorage', '$sessionStorage', 'jwtHelper', 'zlStorageEmitter', '$q',
-                function($window, $interval, $timeout, $http, $location, $localStorage, $sessionStorage, jwtHelper, zlStorageEmitter, $q){
+            this.$get = ['$window', '$timeout', '$http', '$location', '$localStorage', '$sessionStorage', 'jwtHelper', 'zlStorageEmitter', '$q',
+                function($window, $timeout, $http, $location, $localStorage, $sessionStorage, jwtHelper, zlStorageEmitter, $q){
                     if (!self.appId || !self.rootUrl){
                         throw 'You should set appId and baseurl before using zlAuth';
                     }
-                    return new AuthService($window, $interval, $timeout, $http, $location, $localStorage, $sessionStorage, jwtHelper, zlStorageEmitter, $q,
+                    return new AuthService($window, $timeout, $http, $location, $localStorage, $sessionStorage, jwtHelper, zlStorageEmitter, $q,
                         self.rootUrl, self.appId, self.loginRoute, self.refreshRoute, this.changeTeamRoute
                     );
                 }];
-            //  return this;
         });
 
 
-    AuthService.$inject = ['$window', '$interval', '$timeout', '$http', '$location', '$localStorage', '$sessionStorage', 'jwtHelper', 'zlStorageEmitter', '$q'];
+    AuthService.$inject = ['$window', '$timeout', '$http', '$location', '$localStorage', '$sessionStorage', 'jwtHelper', 'zlStorageEmitter', '$q'];
 
 
     /**
      *
      */
-    function AuthService($window, $interval, $timeout, $http, $location, $localStorage, $sessionStorage, jwtHelper, zlStorageEmitter, $q, rootUrl, appId, loginRoute, refreshRoute, changeTeamRoute){
+    function AuthService($window, $timeout, $http, $location, $localStorage, $sessionStorage, jwtHelper, zlStorageEmitter, $q, rootUrl, appId, loginRoute, refreshRoute, changeTeamRoute){
 
         var self = this;
-
-        /**
-         * @type promise
-         */
-        var accessToken = $q.defer();
-
-        /**
-         * @type timestamp
-         */
-        var expirationTimestamp = null;
 
 
         loginRoute      = loginRoute || '/login';
@@ -85,19 +74,12 @@
         //
         _.extend(self, {
 
-            // Public attributes
-            accessToken        : accessToken,
-            expirationTimestamp: expirationTimestamp,
-
             // Public methods
             redirectToAuth  : redirectToAuthServer,
-            setTokenData    : setTokenData,
-            setToken        : setToken,
-            clearToken      : clearToken,
             getToken        : getToken,
             disconnect      : disconnect,
             changeTeam      : changeTeam,
-            registerObserver: registerObserver,
+            registerObserver: registerObserver
         });
 
         self.observers = [];
@@ -112,39 +94,27 @@
             });
         }
 
-        init(false);
+
+        init();
         zlStorageEmitter.on(('logout'), disconnectWithoutEmit);
 
 
-        function init(force){
-            return authorize(force).then(
-                function(token){
-                    //Success
-                    setToken(token);
-                    var expMoment   = moment.unix(self.expirationTimestamp);
-                    var limitMoment = moment(expMoment).subtract(9, 'minutes');
-                    // Creation of an interval between in which we'll refresh token
-                    var stop = $interval(function(){
-                        if (moment().isBetween(limitMoment, expMoment)){
-                            $interval.cancel(stop);
-                            return init(true);
-                        }
-                    }, 300000);
-                    notify();
-                    return token;
-                },
-                //Failure
-                function(f){
-                    disconnect();
+        function init(){
+            if ($location.hash() || $localStorage.accessToken){
+                var tkn = $location.hash() || $localStorage.accessToken;
+                if (checkValidity(tkn)){
+                    setToken(tkn);
+                } else{
+                    refreshToken(tkn).then(setToken, disconnect);
                 }
-            );
+            } else{
+                disconnect();
+            }
         }
 
 
         function disconnectWithoutEmit(){
-            clearToken();
-            clearUser();
-            clearLocalstorage();
+            clear();
             redirectToAuthServer();
         }
 
@@ -164,36 +134,15 @@
         function setToken(token){
             $location.hash('');
             $localStorage.accessToken = token;
-            self.accessToken.resolve(token);
-            setTokenData(token);
+            saveTokenData(token);
+            notify();
         }
 
 
         function saveTokenData(token){
-            var tokenData            = jwtHelper.decodeToken(token);
-            self.expirationTimestamp = tokenData.exp;
-            $sessionStorage.user     = tokenData.user;
-            $sessionStorage.company  = tokenData.selectedCompany;
-        }
-
-        /**
-         *  Extract user and company info
-         *  so as to save it in sessionStorage
-         */
-        function setTokenData(token){
-            var deferred = $q.defer();
-            if (token){
-                saveTokenData(token);
-                deferred.resolve(true);
-            } else if (self.token){
-                self.token.then(function(token){
-                    saveTokenData(token);
-                    deferred.resolve(true);
-                });
-            } else{
-                deferred.reject('setTokenData Failed');
-            }
-            return deferred;
+            var tokenData           = jwtHelper.decodeToken(token);
+            $sessionStorage.user    = tokenData.user;
+            $sessionStorage.company = tokenData.selectedCompany;
         }
 
 
@@ -209,22 +158,20 @@
          * @returns {promise}
          */
         function getToken(){
-            var def = $q.defer();
-            if (self.accessToken){
-                self.accessToken.promise.then(function(tkn){
-                    if (checkValidity(tkn)){
-                        def.resolve(tkn);
-                    } else{
-                        init().then(function(tok){
-                            def.resolve(tok);
-                        }, function(){
-                            def.reject()
-                        });
-                    }
-                });
-                // return self.accessToken.promise;
+            var def   = $q.defer();
+            var token = $localStorage.accessToken;
+            if (checkValidity(token)){
+                def.resolve(token);
             } else{
-                def.reject();
+                if (token){
+                    refreshToken(token).then(def.resolve, function(){
+                        def.reject();
+                        disconnect()
+                    });
+                } else{
+                    disconnect();
+                    def.reject();
+                }
             }
             return def.promise;
         }
@@ -232,65 +179,27 @@
         /**
          *
          */
-        function clearToken(){
+        function clear(){
             self.accessToken = null;
             delete $localStorage.accessToken;
-        }
-
-        /**
-         *
-         */
-        function clearUser(){
+            delete $localStorage.global;
             delete $sessionStorage.user;
             delete $sessionStorage.company;
         }
 
         function checkValidity(token){
-            return !jwtHelper.isTokenExpired(token, 120);
-        }
-
-
-        function authorize(force){
-            var tok          = $location.hash() || $localStorage.accessToken;
-            self.accessToken = $q.defer();
-            if (tok){
-                //Token is either in localStorage or in URL anchor
-                if (checkValidity(tok, 120) && !force){
-                    //Token is still valid
-                    self.accessToken.resolve(tok);
-                } else{
-                    // Need to revalidate
-                    refreshToken(tok).then(
-                        function(response){
-                            self.accessToken.resolve(response.data.token);
-                        }, function(data){
-                            self.accessToken.reject('unable to refresh token: ' + data);
-                        }
-                    );
-                }
-            } else{
-                self.accessToken.reject('Unable to authenticate');
-            }
-            return self.accessToken.promise;
-        }
-
-        function clearLocalstorage(){
-            delete $localStorage.global;
-            delete $localStorage.user;
-            delete $localStorage.company;
+            return token && !jwtHelper.isTokenExpired(token, 120);
         }
 
 
         function redirectToAuthServer(){
-            self.clearToken();
-
             $timeout(function(){
                 $window.location.href = rootUrl + loginRoute + '?client=' + appId;
             });
         }
 
         function changeTeam(){
-            window.location.href = rootUrl + changeTeamRoute + '?client=' + appId ;// + '&token=' + $localStorage.accessToken;
+            window.location.href = rootUrl + changeTeamRoute + '?client=' + appId;// + '&token=' + $localStorage.accessToken;
         }
 
         return self;
