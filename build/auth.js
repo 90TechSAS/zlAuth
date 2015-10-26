@@ -171,12 +171,12 @@
                             def.resolve(token);
                             setToken(token);
                         }, function(){
-                            def.reject({status: 403, config: {ignoreErrors: [403]}});
+                          //  def.reject({status: 403, config: {ignoreErrors: [403]}});
                             disconnect()
                         });
                 } else{
                     disconnect();
-                    def.reject({status: 403, config: {ignoreErrors: [403]}});
+                 //   def.reject({status: 403, config: {ignoreErrors: [403]}});
                 }
             }
             return def.promise;
