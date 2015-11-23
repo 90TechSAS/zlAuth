@@ -39,7 +39,7 @@
             };
 
             this.setCredentials = function(credentials){
-                if (!credentials.password || !credentials.username){
+                if (!credentials.password || !credentials.email){
                     throw 'Credentials must be like {email: email, password: pwd}'
                 }
                 this.credentials = credentials;
