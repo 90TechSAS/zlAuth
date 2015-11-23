@@ -38,6 +38,14 @@
                 return this;
             };
 
+            this.setCredentials = function(credentials){
+                if (!credentials.password || !credentials.username){
+                    throw 'Credentials must be like {email: email, password: pwd}'
+                }
+                this.credentials = credentials;
+                return this;
+            };
+
             this.setChangeTeamRoute = function(changeTeamRoute){
                 this.changeTeamRoute = changeTeamRoute;
                 return this;
@@ -49,7 +57,7 @@
                         throw 'You should set appId and baseurl before using zlAuth';
                     }
                     return new AuthService($window, $timeout, $http, $location, $localStorage, $sessionStorage, jwtHelper, zlStorageEmitter, $q,
-                        self.rootUrl, self.appId, self.loginRoute, self.refreshRoute, this.changeTeamRoute
+                        self.rootUrl, self.appId, self.loginRoute, self.refreshRoute, self.changeTeamRoute, self.credentials
                     );
                 }];
         });
@@ -61,7 +69,7 @@
     /**
      *
      */
-    function AuthService($window, $timeout, $http, $location, $localStorage, $sessionStorage, jwtHelper, zlStorageEmitter, $q, rootUrl, appId, loginRoute, refreshRoute, changeTeamRoute){
+    function AuthService($window, $timeout, $http, $location, $localStorage, $sessionStorage, jwtHelper, zlStorageEmitter, $q, rootUrl, appId, loginRoute, refreshRoute, changeTeamRoute, credentials){
 
         var self = this;
 
@@ -172,11 +180,22 @@
                             setToken(token);
                         }, function(){
                           //  def.reject({status: 403, config: {ignoreErrors: [403]}});
-                            disconnect()
+                            if (self.credentials){
+                              $http.post(rootUrl + loginRoute, {email: credentials.email, password: credentials.password, client: appId}).then(function(data){
+                                  setToken(data.token);
+                              })
+                            } else {
+                                disconnect()
+                            }
                         });
                 } else{
-                    disconnect();
-                 //   def.reject({status: 403, config: {ignoreErrors: [403]}});
+                    if (self.credentials){
+                        $http.post(rootUrl + loginRoute, {email: credentials.email, password: credentials.password, client: appId}).then(function(data){
+                            setToken(data.token);
+                        })
+                    } else {
+                        disconnect()
+                    }                 //   def.reject({status: 403, config: {ignoreErrors: [403]}});
                 }
             }
             return def.promise;
