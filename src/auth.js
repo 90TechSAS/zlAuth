@@ -270,7 +270,7 @@
         }
 
         function changeTeam(companyId){
-            window.location.href = rootUrl + loginRoute +  appId + '&company=' + btoa(companyId)
+            window.location.href = rootUrl + loginRoute +  '?client=' + appId + '&company=' + btoa(companyId)
         }
 
         return self;
