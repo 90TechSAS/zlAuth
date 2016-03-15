@@ -38,8 +38,12 @@
                 return this;
             };
 
+            this.setDirectLogin = function(){
+                this.directLogin = true;
+            }
+
             this.setCredentials = function(credentials){
-                if (!credentials.password || !credentials.email){
+                if (!credentials.password || !credentials.email){
                     throw 'Credentials must be like {email: email, password: pwd}'
                 }
                 this.credentials = credentials;
@@ -57,7 +61,7 @@
                         throw 'You should set appId and baseurl before using zlAuth';
                     }
                     return new AuthService($window, $timeout, $http, $location, $localStorage, $sessionStorage, jwtHelper, zlStorageEmitter, $q,
-                        self.rootUrl, self.appId, self.loginRoute, self.refreshRoute, self.changeTeamRoute, self.credentials
+                        self.rootUrl, self.appId, self.loginRoute, self.refreshRoute, self.changeTeamRoute, self.directLogin
                     );
                 }];
         });
@@ -69,7 +73,7 @@
     /**
      *
      */
-    function AuthService($window, $timeout, $http, $location, $localStorage, $sessionStorage, jwtHelper, zlStorageEmitter, $q, rootUrl, appId, loginRoute, refreshRoute, changeTeamRoute, credentials){
+    function AuthService($window, $timeout, $http, $location, $localStorage, $sessionStorage, jwtHelper, zlStorageEmitter, $q, rootUrl, appId, loginRoute, refreshRoute, changeTeamRoute, directLogin){
 
         var self = this;
 
@@ -87,10 +91,20 @@
             getToken        : getToken,
             disconnect      : disconnect,
             changeTeam      : changeTeam,
-            registerObserver: registerObserver
+            registerObserver: registerObserver,
+            setCredentials  : setCredentials,
+            getCompany      : getCompany
         });
 
         self.observers = [];
+
+
+        function setCredentials(credentials){
+            if (!credentials.password || !credentials.email){
+                throw 'Credentials must be like {email: email, password: pwd}'
+            }
+            this.credentials = credentials;
+        }
 
         function registerObserver(obs){
             self.observers.push(obs);
@@ -168,6 +182,7 @@
          * @returns {promise}
          */
         function getToken(){
+
             var def   = $q.defer();
             var token = $localStorage.accessToken;
             if (checkValidity(token)){
@@ -179,21 +194,48 @@
                             def.resolve(token);
                             setToken(token);
                         }, function(){
-                          //  def.reject({status: 403, config: {ignoreErrors: [403]}});
-                            if (self.credentials){
-                              $http.post(rootUrl + loginRoute, {email: credentials.email, password: credentials.password, client: appId}).then(function(data){
-                                  setToken(data.token);
-                              })
-                            } else {
+                            //  def.reject({status: 403, config: {ignoreErrors: [403]}});
+                            if (directLogin){
+                                $http({
+                                    url              : rootUrl + loginRoute,
+                                    skipAuthorization: true,
+                                    method           : 'POST',
+                                    data             : {
+                                        email   : self.credentials.email,
+                                        password: self.credentials.password,
+                                        client  : appId
+                                    }
+                                }).then(function(data){
+                                    setToken(data.data.token);
+                                    def.resolve(data.data.token);
+
+                                }, function(data){
+                                    console.info(data);
+                                    def.reject();
+                                })
+                            } else{
                                 disconnect()
                             }
                         });
                 } else{
-                    if (self.credentials){
-                        $http.post(rootUrl + loginRoute, {email: credentials.email, password: credentials.password, client: appId}).then(function(data){
-                            setToken(data.token);
+                    if (directLogin){
+                        $http({
+                            url              : rootUrl + loginRoute,
+                            skipAuthorization: true,
+                            method           : 'POST',
+                            data             : {
+                                email   : self.credentials.email,
+                                password: self.credentials.password,
+                                client  : appId
+                            }
+                        }).then(function(data){
+                            setToken(data.data.token);
+                            def.resolve(data.data.token);
+                        }, function(data){
+                            console.info(data);
+                            def.reject();
                         })
-                    } else {
+                    } else{
                         disconnect()
                     }                 //   def.reject({status: 403, config: {ignoreErrors: [403]}});
                 }
@@ -216,6 +258,10 @@
             return token && !jwtHelper.isTokenExpired(token, 120);
         }
 
+        function getCompany(){
+            return $sessionStorage.company
+        }
+
 
         function redirectToAuthServer(){
             $timeout(function(){
@@ -223,8 +269,8 @@
             });
         }
 
-        function changeTeam(){
-            window.location.href = rootUrl + changeTeamRoute + '?client=' + appId;// + '&token=' + $localStorage.accessToken;
+        function changeTeam(companyId){
+            window.location.href = rootUrl + loginRoute +  appId + '&company=' + btoa(companyId)
         }
 
         return self;
