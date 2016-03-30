@@ -6,7 +6,7 @@
  * Non permissive commercial License.
  */
 
-(function(){
+;(function(){
     'use strict';
 
     angular
