@@ -80,7 +80,7 @@
 
         loginRoute      = loginRoute || '/login';
         refreshRoute    = refreshRoute || '/refresh/';
-        changeTeamRoute = changeTeamRoute || '/companies/change';
+        changeTeamRoute = changeTeamRoute || '/login';
 
 
         //
@@ -270,7 +270,7 @@
         }
 
         function changeTeam(companyId){
-            window.location.href = rootUrl + loginRoute +  '?client=' + appId + '&company=' + btoa(companyId)
+            window.location.href = rootUrl + changeTeamRoute +  '?client=' + appId + '&company=' + btoa(companyId)
         }
 
         return self;
