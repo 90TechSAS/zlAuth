@@ -112,7 +112,7 @@
 
         function notify(){
             _.each(self.observers, function(o){
-                o.notifyAuthChange();
+                o.notifyAuthChange && o.notifyAuthChange();
             });
         }
 
@@ -165,6 +165,7 @@
             var tokenData           = jwtHelper.decodeToken(token);
             $sessionStorage.user    = tokenData.user;
             $sessionStorage.company = tokenData.selectedCompany;
+            $sessionStorage.roles   = tokenData.roles;
         }
 
 
@@ -252,6 +253,7 @@
             delete $localStorage.global;
             delete $sessionStorage.user;
             delete $sessionStorage.company;
+            delete $sessionStorage.roles;
         }
 
         function checkValidity(token){
