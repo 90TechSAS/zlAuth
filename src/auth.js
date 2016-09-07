@@ -182,11 +182,11 @@
         /**
          * @returns {promise}
          */
-        function getToken(){
+        function getToken(forceRefresh){
 
             var def   = $q.defer();
             var token = $localStorage.accessToken;
-            if (checkValidity(token)){
+            if (!forceRefresh && checkValidity(token)){
                 def.resolve(token);
             } else{
                 if (token){
