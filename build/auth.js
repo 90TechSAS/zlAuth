@@ -33,6 +33,11 @@
                 return this;
             };
 
+            this.setLogoutRoute = function(logoutRoute){
+                this.logoutRoute = logoutRoute;
+                return this;
+            };
+
             this.setRefreshRoute = function(refreshRoute){
                 this.refreshRoute = refreshRoute;
                 return this;
@@ -61,7 +66,7 @@
                         throw 'You should set appId and baseurl before using zlAuth';
                     }
                     return new AuthService($window, $timeout, $http, $location, $localStorage, $sessionStorage, jwtHelper, zlStorageEmitter, $q,
-                        self.rootUrl, self.appId, self.loginRoute, self.refreshRoute, self.changeTeamRoute, self.directLogin
+                        self.rootUrl, self.appId, self.loginRoute, self.refreshRoute, self.changeTeamRoute, self.directLogin, self.logoutRoute
                     );
                 }];
         });
@@ -73,7 +78,7 @@
     /**
      *
      */
-    function AuthService($window, $timeout, $http, $location, $localStorage, $sessionStorage, jwtHelper, zlStorageEmitter, $q, rootUrl, appId, loginRoute, refreshRoute, changeTeamRoute, directLogin){
+    function AuthService($window, $timeout, $http, $location, $localStorage, $sessionStorage, jwtHelper, zlStorageEmitter, $q, rootUrl, appId, loginRoute, refreshRoute, changeTeamRoute, directLogin, logoutRoute){
 
         var self = this;
 
@@ -81,7 +86,6 @@
         loginRoute      = loginRoute || '/login';
         refreshRoute    = refreshRoute || '/refresh/';
         changeTeamRoute = changeTeamRoute || '/login';
-
 
         //
         _.extend(self, {
@@ -137,6 +141,10 @@
 
         function disconnectWithoutEmit(){
             clear();
+            if (logoutRoute) {
+                $window.location.href = rootUrl + logoutRoute + '?client=' + appId + '&redirectUri=' + $location.url()
+                return
+            }
             redirectToAuthServer();
         }
 
