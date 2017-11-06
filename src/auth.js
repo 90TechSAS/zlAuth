@@ -134,7 +134,7 @@
                     refreshToken(tkn).then(setToken, disconnect);
                 }
             } else{
-                disconnect();
+                redirectToAuthServer();
             }
         }
 
