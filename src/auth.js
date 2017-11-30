@@ -193,6 +193,11 @@
         function getToken(forceRefresh){
 
             var def   = $q.defer();
+            if (!self.credentials) {
+                disconnect();
+                def.reject();
+            }
+
             var token = $localStorage.accessToken;
             if (!forceRefresh && checkValidity(token)){
                 def.resolve(token);
