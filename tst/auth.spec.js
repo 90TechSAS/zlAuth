@@ -6,6 +6,7 @@ describe('AuthService', function(){
     var appId        = 'THISISMYAPPID';
     var loginRoute   = 'myVeryComplicatedRoute/user/login';
     var refreshRoute = 'myEvenSoComplicatedRoute/user/refresh/';
+    var logoutRoute = 'myVeryComplicatedRoute/user/logout'
 
 
     beforeEach(function(){
@@ -238,6 +239,50 @@ describe('AuthService', function(){
 
     });
 
+    describe('using logout route', function () {
+      var $location, $localStorage, $timeout;
+      var invalidToken = jwtMake(false);
+      var validToken   = jwtMake(true);
+
+
+
+      beforeEach(function(){
+        module('90TechSAS.zlAuth.test', function($provide, _zlAuthProvider_){
+          _zlAuthProvider_.setAppId(appId)
+            .setRootUrl(authUrl)
+            .setLoginRoute(loginRoute)
+            .setRefreshRoute(refreshRoute)
+            .setLogoutRoute(logoutRoute);
+
+          $window       = {
+            // now, $window.location.path will update that empty object
+            location: {},
+            // we keep the reference to window.document
+            document: window.document
+          };
+          $localStorage = {};
+          $provide.constant('$window', $window);
+          $provide.constant('$localStorage', $localStorage);
+
+        });
+
+        inject(function(_$timeout_, _$location_, _$localStorage_){
+          $timeout = _$timeout_;
+          $location = _$location_;
+          $localStorage = _$localStorage_;
+          $location.url('myPath/test');
+        });
+        inject(function(_zlAuth_){
+          zlAuth = _zlAuth_;
+        });
+      });
+
+
+      it('should use logout route', function(){
+        zlAuth.disconnect();
+        expect($window.location.href).toEqual(authUrl + logoutRoute + '?client=' + appId + '&redirectUri=/myPath/test');
+      });
+    })
 
 })
 ;
