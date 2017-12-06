@@ -1,5 +1,11 @@
 Version numbers correspond to `bower.json` version
 
+# 1.2.2
+
+## Bug Fixes
+
+- Fix redirect loop
+
 # 1.2.1
 
 ## Bug Fixes
