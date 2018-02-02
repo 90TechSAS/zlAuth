@@ -239,7 +239,7 @@ describe('AuthService', function(){
 
     });
 
-    describe('using logout route', function () {
+    describe('with logout route', function () {
       var $location, $localStorage, $timeout;
       var invalidToken = jwtMake(false);
       var validToken   = jwtMake(true);
@@ -282,6 +282,11 @@ describe('AuthService', function(){
         zlAuth.disconnect();
         expect($window.location.href).toEqual(authUrl + logoutRoute + '?client=' + appId + '&redirectUri=/myPath/test');
       });
+
+      it('should not use redirect uri when force disconnect', function () {
+        zlAuth.disconnect({force: true})
+        expect($window.location.href).toEqual(authUrl + logoutRoute + '?client=' + appId);
+      })
     })
 
 })
