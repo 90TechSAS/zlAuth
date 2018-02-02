@@ -1,5 +1,11 @@
 Version numbers correspond to `bower.json` version
 
+# 1.2.3
+
+## Enhancement
+
+- Ability to force disconnect without saving uri
+
 # 1.2.2
 
 ## Bug Fixes

@@ -139,10 +139,12 @@
         }
 
 
-        function disconnectWithoutEmit(){
+        function disconnectWithoutEmit(opts){
+            var forced = _.get(opts, 'force')
+
             clear();
             if (logoutRoute) {
-                $window.location.href = rootUrl + logoutRoute + '?client=' + appId + '&redirectUri=' + $location.url()
+                $window.location.href = rootUrl + logoutRoute + '?client=' + appId + ( forced ? '' : ('&redirectUri=' + $location.url()))
                 return
             }
             redirectToAuthServer();
@@ -152,9 +154,9 @@
         /**
          *
          */
-        function disconnect(){
+        function disconnect(opts){
             zlStorageEmitter.emit('logout', 'logout');
-            disconnectWithoutEmit();
+            disconnectWithoutEmit(opts);
         }
 
         /**
