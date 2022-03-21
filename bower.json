@@ -21,7 +21,7 @@
   ],
   "dependencies": {
     "angular": "~1.4.0",
-    "angular-storage-emitter": "git://github.com/90TechSAS/angular-storage-emitter.git#0.0.1",
+    "angular-storage-emitter": "https://github.com/90TechSAS/angular-storage-emitter.git#0.0.1",
     "ngstorage": "0.3.0",
     "angular-jwt": "0.0.9",
     "moment": "~2.10.6",
